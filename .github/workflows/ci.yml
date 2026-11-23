@@ -315,6 +315,10 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Normalize Docker image name
+        run: |
+          echo "IMAGE_NAME=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]' | sed 's/^/ghcr.io\\//')" >> "$GITHUB_ENV"
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
 
@@ -369,6 +373,10 @@ jobs:
       contents: read
       packages: write
     steps:
+      - name: Normalize Docker image name
+        run: |
+          echo "IMAGE_NAME=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]' | sed 's/^/ghcr.io\\//')" >> "$GITHUB_ENV"
+
       - name: Download Docker image artifact
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
@@ -403,12 +411,13 @@ jobs:
 
       - name: Display CI Contract payload
         run: |
+          IMAGE_REPO=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]' | sed 's/^/ghcr.io\//')
           echo "========================================="
           echo " CI Integration Contract Payload"
           echo "========================================="
           echo "SUT_REPO_URL: ${{ github.server_url }}/${{ github.repository }}.git"
           echo "SUT_REF: ${{ github.sha }}"
-          echo "IMAGE_REPO: ${{ env.IMAGE_NAME }}"
+          echo "IMAGE_REPO: $IMAGE_REPO"
           echo "IMAGE_TAG: ${{ github.sha }}"
           echo "========================================="
 
@@ -420,9 +429,9 @@ jobs:
           JENKINS_JOB: ci-cd-demo
           SUT_REPO_URL: ${{ github.server_url }}/${{ github.repository }}.git
           SUT_REF: ${{ github.sha }}
-          IMAGE_REPO: ${{ env.IMAGE_NAME }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
+          export IMAGE_REPO=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]' | sed 's/^/ghcr.io\//')
           if [ -z "$JENKINS_URL" ]; then
             echo "Notice: JENKINS_URL is not configured in GitHub Secrets."
             echo "Skipping direct Jenkins HTTP trigger. Ready for manual trigger or SCM polling."
